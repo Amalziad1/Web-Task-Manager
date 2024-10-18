@@ -1,0 +1,122 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Task Manager</title>
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <div class="container">
+    <h1>Task Manager</h1>
+    <input type="text" id="taskInput" placeholder="Enter task description">
+    <button onclick="addTask()">Add Task</button>
+    <h3>Search Task</h3>
+    <input type="text" id="searchInput" placeholder="Search tasks..." oninput="searchTasks()">
+    <h2>Tasks</h2>
+    <ul id="taskList"></ul>
+
+  </div>
+
+  <script>
+    let tasks = [];
+
+    window.onload = function () {
+        const storedTasks = localStorage.getItem("tasks");
+        if (storedTasks) {
+            tasks = JSON.parse(storedTasks);
+            renderTasks();
+        }
+    };
+
+    function addTask() {
+        const taskInput = document.getElementById("taskInput").value;
+        if (taskInput.trim() === "") return alert("Please enter a task");
+
+        const newTask = {
+            id: Date.now(),
+            description: taskInput,
+            completed: false
+        };
+
+        tasks.push(newTask);
+        saveTasks();
+        renderTasks();
+        document.getElementById("taskInput").value = ""; 
+    }
+
+    function renderTasks() {
+        const taskList = document.getElementById("taskList");
+        taskList.innerHTML = "";
+
+        tasks.forEach(task => {
+            const taskItem = document.createElement("li");
+            taskItem.className = task.completed ? "completed" : "";
+
+            taskItem.innerHTML = `
+            <span>${task.description}</span>
+            <div>
+                <button onclick="doneTask(${task.id})">Done</button>
+                <button onclick="editTask(${task.id})">Edit</button>
+                <button onclick="removeTask(${task.id})">Delete</button>
+            </div>
+            `;
+
+            taskList.appendChild(taskItem);
+        });
+    }
+
+    function doneTask(id) {
+        const task = tasks.find(task => task.id === id);
+        task.completed = !task.completed;
+        saveTasks();
+        renderTasks();
+    }
+
+    function editTask(id) {
+        const newDescription = prompt("Enter new description:");
+        if (newDescription.trim() === "") return;
+
+        const task = tasks.find(task => task.id === id);
+        task.description = newDescription;
+        saveTasks();
+        renderTasks();
+    }
+
+    function removeTask(id) {
+        tasks = tasks.filter(task => task.id !== id);
+        saveTasks();
+        renderTasks();
+    }
+
+    function searchTasks() {
+        const searchInput = document.getElementById("searchInput").value.toLowerCase();
+        const filteredTasks = tasks.filter(task => task.description.toLowerCase().includes(searchInput));
+        
+        const taskList = document.getElementById("taskList");
+        taskList.innerHTML = "";
+
+        filteredTasks.forEach(task => {
+            const taskItem = document.createElement("li");
+            taskItem.className = task.completed ? "completed" : "";
+
+            taskItem.innerHTML = `
+            <span>${task.description}</span>
+            <div>
+                <button onclick="doneTask(${task.id})">Done</button>
+                <button onclick="editTask(${task.id})">Edit</button>
+                <button onclick="removeTask(${task.id})">Delete</button>
+            </div>
+            `;
+
+            taskList.appendChild(taskItem);
+        });
+    }
+
+    function saveTasks() {
+        localStorage.setItem("tasks", JSON.stringify(tasks));
+    }
+
+  </script>
+</body>
+</html>
